@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kallpa Allpa - Observatorio Agrícola de Cochabamba / Imata tarpusun</title>
+    <!-- Hoja de estilos y script de Leaflet para mapa municipal -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --color-verde-campo: #15803d;
+            --color-verde-hover: #166534;
+            --color-verde-suave: #dcfce7;
+            --color-celeste-cbba: #0284c7;
+            --color-celeste-suave: #e0f2fe;
+            --color-tierra: #78350f;
+            --color-tierra-suave: #fef3c7;
+            --color-fondo: #f8fafc;
+            --color-tarjeta: #ffffff;
+            --color-texto: #1e293b;
+            --color-texto-muted: #64748b;
+            --color-borde: #cbd5e1;
+            --color-dorado: #b45309;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--color-fondo);
+            color: var(--color-texto);
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .cabecera-principal {
+            background: linear-gradient(135deg, #0f4a24 0%, #073b61 100%);
+            color: #ffffff;
+            padding: 24px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-bottom: 3px solid #16a34a;
+        }
+
+        .cabecera-contenedor {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .titulo-app {
+            font-size: 1.9rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: #ffffff !important;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+        }
+
+        .subtitulo-app {
+            font-size: 1.05rem;
+            color: #dcfce7 !important;
+            font-weight: 600;
+            margin-top: 4px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            opacity: 1;
+        }
+
+        .etiqueta-valle {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1.5px solid #ffffff;
+            color: #ffffff !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: 22px auto;
+            padding: 0 16px;
+        }
+
+        .panel-pasos {
+            background: var(--color-tarjeta);
+            border-radius: 10px;
+            border: 1px solid var(--color-borde);
+            padding: 22px;
+            margin-bottom: 22px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .paso-titulo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--color-verde-campo);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .paso-numero {
+            background-color: var(--color-verde-campo);
+            color: #ffffff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .grid-zonas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .boton-zona-agro {
+            background: #ffffff;
+            border: 2px solid var(--color-borde);
+            border-radius: 8px;
+            padding: 14px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .boton-zona-agro:hover {
+            border-color: var(--color-verde-campo);
+            background-color: var(--color-verde-suave);
+        }
+
+        .boton-zona-agro.activa {
+            border-color: var(--color-verde-campo);
+            background-color: var(--color-verde-suave);
+            box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.2);
+        }
+
+        .zona-tag-altitud {
+            display: inline-block;
+            background-color: #f1f5f9;
+            color: var(--color-texto);
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            align-self: flex-start;
+            border: 1px solid #cbd5e1;
+        }
+
+        .zona-nombre-es {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--color-texto);
+        }
+
+        .zona-nombre-qu {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-verde-campo);
+        }
+
+        .zona-desc {
+            font-size: 0.82rem;
+            color: var(--color-texto-muted);
+        }
+
+        .contenedor-mapa {
+            height: 250px;
+            border-radius: 8px;
+            border: 1px solid var(--color-borde);
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .grid-fechas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 650px) {
+            .grid-fechas {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .campo-caja {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .etiqueta-campo {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--color-texto);
+        }
+
+        .selector-grande {
+            background-color: #ffffff;
+            border: 2px solid var(--color-borde);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-texto);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .selector-grande:focus {
+            border-color: var(--color-verde-campo);
+        }
+
+        .boton-consultar {
+            background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 10px rgba(21, 128, 61, 0.25);
+            transition: all 0.2s;
+            margin-top: 18px;
+        }
+
+        .boton-consultar:hover {
+            background: linear-gradient(135deg, #166534 0%, #14532d 100%);
+            box-shadow: 0 6px 14px rgba(21, 128, 61, 0.35);
+        }
+
+        .caja-clima-resumen {
+            background: #ffffff;
+            border: 1px solid var(--color-borde);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 22px;
+        }
+
+        .clima-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .tarjeta-clima-item {
+            background-color: var(--color-fondo);
+            border: 1px solid var(--color-borde);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .clima-tag-tipo {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--color-texto-muted);
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .clima-valor {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--color-texto);
+        }
+
+        .clima-etiqueta-es {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--color-texto);
+            margin-top: 2px;
+        }
+
+        .clima-etiqueta-qu {
+            font-size: 0.8rem;
+            color: var(--color-verde-campo);
+            font-weight: 600;
+        }
+
+        .banner-tierra {
+            background-color: var(--color-tierra-suave);
+            border: 1px solid #fde68a;
+            color: var(--color-tierra);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 14px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .seccion-resultados-titulo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--color-texto);
+            margin-bottom: 14px;
+        }
+
+        .grid-cultivos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        .tarjeta-cultivo {
+            background: #ffffff;
+            border: 2px solid var(--color-borde);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tarjeta-cultivo:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-verde-campo);
+        }
+
+        .cultivo-foto-contenedor {
+            position: relative;
+            width: 100%;
+            height: 210px;
+            background-color: #f1f5f9;
+            overflow: hidden;
+        }
+
+        .cultivo-foto {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .tarjeta-cultivo:hover .cultivo-foto {
+            transform: scale(1.04);
+        }
+
+        .insignia-compatibilidad {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #15803d;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .cultivo-cuerpo {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .cultivo-nombre-principal {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--color-texto);
+            margin-bottom: 2px;
+        }
+
+        .cultivo-nombre-quechua {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--color-verde-campo);
+            margin-bottom: 8px;
+        }
+
+        .cultivo-piso-altitud {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--color-texto-muted);
+            margin-bottom: 10px;
+        }
+
+        .cultivo-consejo-caja {
+            background-color: var(--color-verde-suave);
+            border-left: 3px solid var(--color-verde-campo);
+            border-radius: 4px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: #14532d;
+        }
+
+        .cultivo-detalles-rapidos {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: auto;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 10px;
+        }
+
+        .detalle-pildora {
+            background-color: #f8fafc;
+            border: 1px solid var(--color-borde);
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 0.82rem;
+        }
+
+        .detalle-pildora strong {
+            display: block;
+            color: var(--color-texto);
+            font-size: 0.84rem;
+        }
+
+        .caja-cargando {
+            display: none;
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--color-texto-muted);
+        }
+
+        .rueda-carga {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--color-verde-campo);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: girar 1s linear infinite;
+            margin: 0 auto 14px auto;
+        }
+
+        @keyframes girar {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mensaje-error {
+            display: none;
+            background-color: #fef2f2;
+            border: 1px solid #f87171;
+            color: #991b1b;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+
+        .bloque-trimestre {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 2px dashed var(--color-borde);
+        }
+
+        .grid-trimestre {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .tarjeta-mes-pequena {
+            background: #ffffff;
+            border: 2px solid var(--color-borde);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .tarjeta-mes-pequena.resaltada {
+            border-color: var(--color-verde-campo);
+            background-color: var(--color-verde-suave);
+        }
+
+        .pie-pagina {
+            background-color: #ffffff;
+            text-align: center;
+            padding: 32px 20px;
+            color: var(--color-texto);
+            font-size: 0.9rem;
+            margin-top: 40px;
+            border-top: 2px solid var(--color-borde);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .pie-contenedor {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .pie-destacado {
+            font-size: 1.05rem;
+            color: var(--color-verde-campo);
+            font-weight: 800;
+        }
+
+        .pie-creditos-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            margin: 6px 0;
+        }
+
+        .pie-credito-item {
+            background-color: var(--color-fondo);
+            border: 1px solid var(--color-borde);
+            border-radius: 8px;
+            padding: 10px 18px;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.92rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .pie-credito-rotulo {
+            font-weight: 800;
+            color: var(--color-verde-campo);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .pie-credito-valor {
+            font-weight: 700;
+            color: var(--color-texto);
+        }
+
+        .pie-fuentes {
+            font-size: 0.85rem;
+            color: var(--color-texto-muted);
+            max-width: 800px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<header class="cabecera-principal">
+    <div class="cabecera-contenedor">
+        <div>
+            <div class="titulo-app">Kallpa Allpa Cochabamba</div>
+            <p class="subtitulo-app">Planificación agrícola y recomendación de cultivos para tu terreno</p>
+        </div>
+        <div>
+            <span class="etiqueta-valle">Valles de Cochabamba</span>
+        </div>
+    </div>
+</header>
+
+<main class="contenedor">
+
+    <!-- Paso 1: Selección de Zona y Altitud -->
+    <section class="panel-pasos">
+        <h2 class="paso-titulo">
+            <span class="paso-numero">1</span>
+            <span>¿Dónde está tu terreno o parcela?</span>
+        </h2>
+
+        <div class="grid-zonas">
+            <!-- La Maica -->
+            <button type="button" class="boton-zona-agro activa" id="btn-maica" onclick="seleccionarZona('maica')">
+                <span class="zona-tag-altitud">Altitud: 2.550 msnm</span>
+                <span class="zona-nombre-es">La Maica (Distrito 9)</span>
+                <span class="zona-nombre-qu">Cuenca Lechera</span>
+                <span class="zona-desc">Fondo de valle plano, suelo aluvial para alfalfa, maíz y forrajes.</span>
+            </button>
+
+            <!-- Distrito 9 Sur -->
+            <button type="button" class="boton-zona-agro" id="btn-d9" onclick="seleccionarZona('d9')">
+                <span class="zona-tag-altitud">Altitud: 2.560 msnm</span>
+                <span class="zona-nombre-es">Distrito 9 (Sur Agropecuario)</span>
+                <span class="zona-nombre-qu">Valle Central Agrícola</span>
+                <span class="zona-desc">Suelo fértil templado para maíz, haba, papa y hortalizas.</span>
+            </button>
+
+            <!-- Distrito 13 Tunari -->
+            <button type="button" class="boton-zona-agro" id="btn-d13" onclick="seleccionarZona('d13')">
+                <span class="zona-tag-altitud">Altitud: 2.850 msnm</span>
+                <span class="zona-nombre-es">Distrito 13 (Pie de Monte Tunari)</span>
+                <span class="zona-nombre-qu">Laderas Altas del Tunari</span>
+                <span class="zona-desc">Clima fresco con noches frías: papa waych'a, arveja, haba.</span>
+            </button>
+
+            <!-- Valles Periurbanos -->
+            <button type="button" class="boton-zona-agro" id="btn-periurbanos" onclick="seleccionarZona('periurbanos')">
+                <span class="zona-tag-altitud">Altitud: 2.570 msnm</span>
+                <span class="zona-nombre-es">Valles Periurbanos</span>
+                <span class="zona-nombre-qu">Quillacollo, Sacaba, Colcapirhua</span>
+                <span class="zona-desc">Cinturones hortícolas bajo riego: lechuga, cebolla, zanahoria.</span>
+            </button>
+        </div>
+
+        <div class="contenedor-mapa" id="mapa-distritos"></div>
+
+        <input type="hidden" id="coord-lat" value="-17.4350">
+        <input type="hidden" id="coord-lon" value="-66.1750">
+        <input type="hidden" id="coord-altitud" value="2550">
+        <input type="hidden" id="selector-zona-distrito" value="maica">
+    </section>
+
+    <!-- Paso 2: Elección de Fecha y Modalidad -->
+    <section class="panel-pasos">
+        <h2 class="paso-titulo">
+            <span class="paso-numero">2</span>
+            <span>¿En qué mes vas a sembrar?</span>
+        </h2>
+
+        <div class="grid-fechas">
+            <div class="campo-caja">
+                <label for="selector-mes" class="etiqueta-campo">Mes de Siembra:</label>
+                <select id="selector-mes" class="selector-grande" onchange="ejecutarConsultaAgroclimatica()">
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+            </div>
+
+            <div class="campo-caja">
+                <label for="selector-horizonte" class="etiqueta-campo">Ventana de Planificación:</label>
+                <select id="selector-horizonte" class="selector-grande" onchange="ejecutarConsultaAgroclimatica()">
+                    <option value="trimestral" selected>Proyección a 3 Meses</option>
+                    <option value="mensual">Solo el mes elegido</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="button" class="boton-consultar" onclick="ejecutarConsultaAgroclimatica()">
+            CONSULTAR: Ver Cultivos Recomendados
+        </button>
+    </section>
+
+    <div id="caja-error" class="mensaje-error"></div>
+
+    <div id="indicador-cargando" class="caja-cargando">
+        <div class="rueda-carga"></div>
+        <p style="font-size: 1.1rem; font-weight: 700; color: var(--color-texto);">
+            Consultando clima satelital de la NASA y suelo de tu zona...<br>
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--color-texto-muted);">
+                Calculando idoneidad agronómica y altitud...
+            </span>
+        </p>
+    </div>
+
+    <!-- Resultados -->
+    <div id="contenedor-resultados" style="display: none;">
+        
+        <div class="caja-clima-resumen">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--color-texto);">
+                Condiciones de Clima, Suelo y Altitud para la siembra
+            </h3>
+            
+            <div class="clima-grid">
+                <div class="tarjeta-clima-item">
+                    <div class="clima-tag-tipo">Temperatura</div>
+                    <div class="clima-valor" id="val-temperatura">-- °C</div>
+                    <div class="clima-etiqueta-es">Temperatura promedio</div>
+                    <div class="clima-etiqueta-qu">Ruphay</div>
+                </div>
+
+                <div class="tarjeta-clima-item">
+                    <div class="clima-tag-tipo">Precipitación</div>
+                    <div class="clima-valor" id="val-lluvia">-- mm/mes</div>
+                    <div class="clima-etiqueta-es">Precipitación mensual (mm/mes)</div>
+                    <div class="clima-etiqueta-qu">Para pacha</div>
+                </div>
+
+                <div class="tarjeta-clima-item">
+                    <div class="clima-tag-tipo">Humedad</div>
+                    <div class="clima-valor" id="val-humedad">-- %</div>
+                    <div class="clima-etiqueta-es">Humedad del aire</div>
+                    <div class="clima-etiqueta-qu">Wayra chiri</div>
+                </div>
+
+                <div class="tarjeta-clima-item">
+                    <div class="clima-tag-tipo">Piso Altitudinal</div>
+                    <div class="clima-valor" id="val-altitud">-- msnm</div>
+                    <div class="clima-etiqueta-es">Elevación parcela</div>
+                    <div class="clima-etiqueta-qu">Sayaynin</div>
+                </div>
+
+                <div class="tarjeta-clima-item">
+                    <div class="clima-tag-tipo">Suelo</div>
+                    <div class="clima-valor" id="val-ph">--</div>
+                    <div class="clima-etiqueta-es">pH de la tierra</div>
+                    <div class="clima-etiqueta-qu">Allin Allpa</div>
+                </div>
+            </div>
+
+            <div class="banner-tierra" id="banner-suelo-texto">
+                Tierra fértil evaluada para el valle de Cochabamba.
+            </div>
+        </div>
+
+        <h3 class="seccion-resultados-titulo">
+            Cultivos recomendados para tu parcela
+        </h3>
+        
+        <div class="grid-cultivos" id="cuadricula-cultivos"></div>
+
+        <div id="bloque-trimestre-ui" class="bloque-trimestre" style="display: none;">
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--color-texto);">
+                Proyección para los próximos 3 meses:
+            </h4>
+            <div class="grid-trimestre" id="contenedor-trimestre-tarjetas"></div>
+        </div>
+
+    </div>
+
+</main>
+
+<footer class="pie-pagina">
+    <div class="pie-contenedor">
+        <p class="pie-destacado">
+            <strong>Kallpa Allpa Cochabamba</strong> &bull; Sistema Inteligente de Planificación Agrícola Satelital
+        </p>
+        <div class="pie-creditos-grid">
+            <div class="pie-credito-item">
+                <span class="pie-credito-rotulo">Reto:</span>
+                <span class="pie-credito-valor">NASA Space Apps Challenge</span>
+            </div>
+            <div class="pie-credito-item">
+                <span class="pie-credito-rotulo">Equipo:</span>
+                <span class="pie-credito-valor">Kallpa Shift</span>
+            </div>
+            <div class="pie-credito-item">
+                <span class="pie-credito-rotulo">Institución:</span>
+                <span class="pie-credito-valor">Universidad Simón I. Patiño (USIP)</span>
+            </div>
+        </div>
+        <p class="pie-fuentes">
+            Desarrollado para agricultores de los valles de Cochabamba. Fuentes satelitales y edafológicas: NASA POWER (MERRA-2 / CERES) y SoilGrids ISRIC v2.
+        </p>
+    </div>
+</footer>
+
+<script>
+    // Catálogo con imágenes locales descargadas en el proyecto y consejos agronómicos
+    const DATOS_AGRICULTOR = {
+        "Papa Waych'a de Valle": {
+            quechua: "Papa Waych'a",
+            imagen: "/static/img/papa.jpg",
+            consejo_es: "Tubérculo tradicional andino. Rinde óptimo en laderas y pie de monte; tolera las noches frescas.",
+            consejo_qu: "Allin llamp'u allpapi tarpuy, chiri tutakunata allinta sayapan.",
+            piso_alt: "Óptimo: 2.550 a 3.600 msnm",
+            riego: "Riego moderado (cada 8-10 días)",
+            dias: "110 a 140 días"
+        },
+        "Maíz Choclero": {
+            quechua: "Sara Choclo",
+            imagen: "/static/img/maiz.jpg",
+            consejo_es: "Requiere buen calor de fondo de valle y riego en floración para producir choclos tiernos.",
+            consejo_qu: "Ruphaytawan unuta munan sumaq misk'i chojllokuna llojsinanpaq.",
+            piso_alt: "Óptimo: 2.200 a 2.750 msnm (Fondo de valle)",
+            riego: "Riego regular continuo",
+            dias: "120 a 150 días"
+        },
+        "Haba de Valle": {
+            quechua: "Hawas",
+            imagen: "/static/img/haba.jpg",
+            consejo_es: "Excelente cultivo de rotación. Fija nitrógeno, nutre la tierra y soporta bajas temperaturas.",
+            consejo_qu: "Allpatapas kallpachan, chiri killakunapipis sumaqta puqun.",
+            piso_alt: "Óptimo: 2.500 a 3.400 msnm",
+            riego: "Riego bajo a moderado",
+            dias: "130 a 160 días"
+        },
+        "Alfalfa": {
+            quechua: "Alpalpa (Uywa qhura)",
+            imagen: "/static/img/alfalfa.jpg",
+            consejo_es: "Principal forraje de corte en La Maica para ganado lechero. Cortes continuos cada 35-45 días.",
+            consejo_qu: "Wakahinataq uywakunapaq forraje, sapa 35-45 punchay k'utuna.",
+            piso_alt: "Óptimo: 2.200 a 2.800 msnm",
+            riego: "Riego regular por turno",
+            dias: "Perenne (cortes sucesivos)"
+        },
+        "Cebolla Roja de Valle": {
+            quechua: "Puka Siwulla",
+            imagen: "/static/img/cebolla.jpg",
+            consejo_es: "Requiere buena insolación y clima seco de invierno. Ideal para surcos en valles bajos.",
+            consejo_qu: "Inti k'anchayta munan, ch'aki pachapi sumaq llimphu cabezakuna puqun.",
+            piso_alt: "Óptimo: 2.200 a 2.800 msnm",
+            riego: "Riego moderado por surco",
+            dias: "120 a 150 días"
+        },
+        "Zanahoria": {
+            quechua: "Sanawrya",
+            imagen: "/static/img/zanahoria.jpg",
+            consejo_es: "Demanda suelo mullido y profundo sin piedras para un crecimiento recto y uniforme de la raíz.",
+            consejo_qu: "Rumiynnaq allpapi tarpuna, allinta saphin uqhupi lloqsinanpaq.",
+            piso_alt: "Óptimo: 2.300 a 2.850 msnm",
+            riego: "Humedad regular constante",
+            dias: "90 a 110 días"
+        },
+        "Tomate de Valle": {
+            quechua: "Puka Tumati",
+            imagen: "/static/img/tomate.jpg",
+            consejo_es: "Exclusivo de fondo de valle cálido. Muy sensible a heladas; no sembrar en laderas altas descubiertas.",
+            consejo_qu: "Qasawan mana wanananpaq jark'ana, uray ruphayllapi puqun.",
+            piso_alt: "Óptimo: 1.800 a 2.650 msnm (Sensible a heladas)",
+            riego: "Riego por goteo o pie",
+            dias: "100 a 130 días"
+        },
+        "Lechuga y Hortalizas Periurbanas": {
+            quechua: "Q'umir Qhurakuna (Lechuga)",
+            imagen: "/static/img/lechuga.jpg",
+            consejo_es: "Ciclo corto de dos meses en cinturones hortícolas. Demanda riego frecuente para hojas frescas.",
+            consejo_qu: "Iskay killallapi t'ipina, unullata sapa kuti munallan.",
+            piso_alt: "Óptimo: 2.400 a 2.800 msnm",
+            riego: "Riego frecuente ligero",
+            dias: "60 a 80 días"
+        },
+        "Avena Forrajera": {
+            quechua: "Awinaka (Uywa mikhuna)",
+            imagen: "/static/img/avena.jpg",
+            consejo_es: "Alta rusticidad frente a heladas y vientos fríos. Ideal para laderas y alturas del Tunari.",
+            consejo_qu: "Chiri qasapi mana wanunchu, orqokunapipis sumaq forraje lloqsin.",
+            piso_alt: "Óptimo: 2.600 a 3.800 msnm (Resistente al frío)",
+            riego: "Poco riego (resistente)",
+            dias: "90 a 120 días"
+        },
+        "Arveja": {
+            quechua: "Alwirha",
+            imagen: "/static/img/arveja.jpg",
+            consejo_es: "Leguminosa de ciclo rápido. Buena adaptación a laderas templadas y rotación invernal.",
+            consejo_qu: "Pisi pachallapi puqun, allpatapis samachin allinta.",
+            piso_alt: "Óptimo: 2.400 a 3.200 msnm",
+            riego: "Riego ligero oportuno",
+            dias: "90 a 120 días"
+        }
+    };
+
+    // Zonas oficiales con su altitud calibrada
+    const ZONAS_COCHABAMBA = {
+        "maica": {
+            nombre: "La Maica (Cuenca Lechera)",
+            altitud: 2550,
+            coords: [-17.435, -66.175],
+            poligono: [
+                [-17.415, -66.195], [-17.415, -66.155], [-17.455, -66.155], [-17.455, -66.195]
+            ]
+        },
+        "d9": {
+            nombre: "Distrito 9 (Sur Agropecuario)",
+            altitud: 2560,
+            coords: [-17.450, -66.140],
+            poligono: [
+                [-17.430, -66.155], [-17.430, -66.120], [-17.475, -66.120], [-17.475, -66.155]
+            ]
+        },
+        "d13": {
+            nombre: "Distrito 13 (Pie de Monte Tunari)",
+            altitud: 2850,
+            coords: [-17.345, -66.150],
+            poligono: [
+                [-17.325, -66.170], [-17.325, -66.130], [-17.365, -66.130], [-17.365, -66.170]
+            ]
+        },
+        "periurbanos": {
+            nombre: "Valles Periurbanos",
+            altitud: 2570,
+            coords: [-17.385, -66.185],
+            poligono: [
+                [-17.370, -66.210], [-17.375, -66.170], [-17.405, -66.165], [-17.405, -66.215]
+            ]
+        }
+    };
+
+    let mapaInstancia = null;
+    let marcadorActivo = null;
+
+    function iniciarMapa() {
+        if (mapaInstancia) return;
+        const contenedor = document.getElementById("mapa-distritos");
+        if (!contenedor) return;
+
+        mapaInstancia = L.map('mapa-distritos', { zoomControl: true }).setView([-17.395, -66.165], 11.5);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: 'OpenStreetMap | NASA POWER | GAMC'
+        }).addTo(mapaInstancia);
+
+        Object.keys(ZONAS_COCHABAMBA).forEach(clave => {
+            const z = ZONAS_COCHABAMBA[clave];
+            const poly = L.polygon(z.poligono, {
+                color: '#15803d',
+                weight: 2,
+                fillColor: '#86efac',
+                fillOpacity: 0.25
+            }).addTo(mapaInstancia);
+
+            poly.on('click', () => seleccionarZona(clave));
+            poly.bindTooltip(`${z.nombre} (${z.altitud} msnm)`, { permanent: false, direction: 'center' });
+        });
+
+        seleccionarZona('maica');
+    }
+
+    function seleccionarZona(clave) {
+        const zona = ZONAS_COCHABAMBA[clave];
+        if (!zona) return;
+
+        document.getElementById("coord-lat").value = zona.coords[0].toFixed(4);
+        document.getElementById("coord-lon").value = zona.coords[1].toFixed(4);
+        document.getElementById("coord-altitud").value = zona.altitud;
+        document.getElementById("selector-zona-distrito").value = clave;
+
+        document.querySelectorAll('.boton-zona-agro').forEach(b => b.classList.remove('activa'));
+        const btnActivo = document.getElementById(`btn-${clave}`);
+        if (btnActivo) btnActivo.classList.add('activa');
+
+        if (mapaInstancia) {
+            mapaInstancia.flyTo(zona.coords, 12.8, { duration: 0.6 });
+            if (marcadorActivo) mapaInstancia.removeLayer(marcadorActivo);
+            marcadorActivo = L.marker(zona.coords).addTo(mapaInstancia)
+                .bindPopup(`<strong>${zona.nombre}</strong><br>Altitud: ${zona.altitud} msnm`)
+                .openPopup();
+        }
+    }
+
+    async function ejecutarConsultaAgroclimatica() {
+        const lat = document.getElementById("coord-lat").value;
+        const lon = document.getElementById("coord-lon").value;
+        const altitud = document.getElementById("coord-altitud").value;
+        const mes = document.getElementById("selector-mes").value;
+        const horizonte = document.getElementById("selector-horizonte").value;
+        const anio = new Date().getFullYear();
+
+        const cajaError = document.getElementById("caja-error");
+        const indicadorCarga = document.getElementById("indicador-cargando");
+        const contenedorResultados = document.getElementById("contenedor-resultados");
+
+        cajaError.style.display = "none";
+        indicadorCarga.style.display = "block";
+        contenedorResultados.style.display = "none";
+
+        let endpointUrl = "";
+        if (horizonte === "trimestral") {
+            endpointUrl = `/api/v1/ml/proyeccion-trimestral?lat=${lat}&lon=${lon}&mes_inicio=${mes}&anio_inicio=${anio}&altitud_msnm=${altitud}`;
+        } else {
+            endpointUrl = `/api/v1/ml/recomendar-por-satelite?lat=${lat}&lon=${lon}&mes=${mes}&anio=${anio}&altitud_msnm=${altitud}`;
+        }
+
+        try {
+            const respuesta = await fetch(endpointUrl);
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(datos.detail || "No fue posible procesar la información satelital.");
+            }
+
+            if (horizonte === "trimestral") {
+                renderizarTrimestre(datos, altitud);
+            } else {
+                renderizarMes(datos, altitud);
+            }
+
+            contenedorResultados.style.display = "block";
+            contenedorResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        } catch (error) {
+            cajaError.innerText = `Atención / Qillqa: ${error.message}`;
+            cajaError.style.display = "block";
+        } finally {
+            indicadorCarga.style.display = "none";
+        }
+    }
+
+    function renderizarMes(datos, altitud) {
+        const cond = datos.condiciones_evaluadas;
+        actualizarMetricasClima(cond, datos.diagnostico_suelo, altitud);
+
+        document.getElementById("bloque-trimestre-ui").style.display = "none";
+        renderizarTarjetasCultivos(datos.recomendaciones || []);
+    }
+
+    function renderizarTrimestre(datos, altitud) {
+        const primerMes = datos.proyecciones[0];
+        const cond = primerMes.condiciones;
+        actualizarMetricasClima(cond, null, altitud);
+
+        document.getElementById("banner-suelo-texto").innerHTML = 
+            `<strong>Recomendación para la temporada de 3 meses:</strong> El cultivo más estable en rendimiento para la altitud de ${altitud} msnm es <strong>${datos.cultivo_recomendado_trimestre}</strong>.`;
+
+        const bloqueTrimestre = document.getElementById("bloque-trimestre-ui");
+        const contTarjetas = document.getElementById("contenedor-trimestre-tarjetas");
+        bloqueTrimestre.style.display = "block";
+        
+        let htmlTrim = "";
+        datos.proyecciones.forEach((p, idx) => {
+            const top = p.top_cultivo;
+            const nombreCultivo = top ? top.cultivo : "Papa Waych'a de Valle";
+            const esPrimero = (idx === 0) ? "resaltada" : "";
+
+            htmlTrim += `
+                <div class="tarjeta-mes-pequena ${esPrimero}">
+                    <div style="font-weight: 800; font-size: 1.1rem; color: var(--color-texto);">${p.mes_nombre}</div>
+                    <div style="font-size: 0.85rem; color: var(--color-verde-campo); font-weight: 700; margin-bottom: 6px;">${p.horizonte}</div>
+                    <div style="font-size: 0.95rem; margin-bottom: 6px; font-weight: 700;">
+                        ${nombreCultivo}
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--color-texto-muted);">
+                        ${p.condiciones.temperatura_media_c}°C | Lluvia: ${p.condiciones.precipitacion_mensual_mm} mm/mes
+                    </div>
+                </div>
+            `;
+        });
+        contTarjetas.innerHTML = htmlTrim;
+        renderizarTarjetasCultivos(primerMes.todos_cultivos);
+    }
+
+    function actualizarMetricasClima(cond, diag, altitud) {
+        document.getElementById("val-temperatura").innerText = `${cond.temperatura_media_c} °C`;
+        document.getElementById("val-lluvia").innerText = `${cond.precipitacion_mensual_mm} mm/mes`;
+        document.getElementById("val-humedad").innerText = `${cond.humedad_relativa_pct} %`;
+        document.getElementById("val-altitud").innerText = `${altitud || cond.altitud_msnm || 2550} msnm`;
+        document.getElementById("val-ph").innerText = `${cond.ph_suelo}`;
+
+        if (diag) {
+            document.getElementById("banner-suelo-texto").innerText = 
+                `Diagnóstico de Suelo y Relieve: Textura ${diag.textura_estimada || 'Franco (Equilibrado)'} con pH ${diag.ph_suelo || '6.6'} a ${altitud} msnm. Condiciones adecuadas para cultivos de valle.`;
+        }
+    }
+
+    function renderizarTarjetasCultivos(lista) {
+        const contenedor = document.getElementById("cuadricula-cultivos");
+        let html = "";
+
+        lista.forEach(c => {
+            const nombre = c.cultivo;
+            const info = DATOS_AGRICULTOR[nombre] || {
+                quechua: nombre,
+                imagen: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80",
+                consejo_es: c.descripcion || "Cultivo adaptado a las condiciones de Cochabamba.",
+                consejo_qu: "Allin allpapi tarpuy puqunanpaq.",
+                piso_alt: c.rango_altitud_optimo || "2.200 a 2.800 msnm",
+                riego: c.demanda_hidrica || "Moderado",
+                dias: c.ciclo_dias || "90 a 120 días"
+            };
+
+            const compatibilidad = c.idoneidad_porcentaje || 80;
+
+            html += `
+                <article class="tarjeta-cultivo">
+                    <div class="cultivo-foto-contenedor">
+                        <img class="cultivo-foto" src="${info.imagen}" alt="${nombre}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1592417817098-8f3d69102a56?w=600&auto=format&fit=crop&q=80';">
+                        <div class="insignia-compatibilidad">
+                            ${compatibilidad}% Recomendado / Allinpuni
+                        </div>
+                    </div>
+                    <div class="cultivo-cuerpo">
+                        <h4 class="cultivo-nombre-principal">${nombre}</h4>
+                        <div class="cultivo-nombre-quechua">Quechua: ${info.quechua}</div>
+                        <div class="cultivo-piso-altitud">Piso altitudinal: ${info.piso_alt}</div>
+                        
+                        <div class="cultivo-consejo-caja">
+                            <strong>Consejo agronómico:</strong> ${info.consejo_es}<br>
+                            <em style="color: #166534; font-size: 0.88rem;">"${info.consejo_qu}"</em>
+                        </div>
+
+                        <div class="cultivo-detalles-rapidos">
+                            <div class="detalle-pildora">
+                                <strong>Cosecha:</strong>
+                                <span>${info.dias}</span>
+                            </div>
+                            <div class="detalle-pildora">
+                                <strong>Riego:</strong>
+                                <span>${info.riego}</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+        });
+
+        contenedor.innerHTML = html;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const mesActual = new Date().getMonth() + 1;
+        const selectorMes = document.getElementById("selector-mes");
+        if (selectorMes) {
+            selectorMes.value = mesActual.toString();
+        }
+
+        setTimeout(() => {
+            iniciarMapa();
+            ejecutarConsultaAgroclimatica();
+        }, 150);
+    });
+</script>
+
+</body>
+</html>

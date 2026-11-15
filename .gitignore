@@ -1,0 +1,25 @@
+# Entorno virtual de Python
+venv/
+env/
+ENV/
+.venv/
+
+# Carpetas y archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Subcarpeta redundante generada durante la descompresión
+kallpa-shift-backend/
+
+# Variables de entorno y credenciales locales
+.env
+*.log
+
+# Archivos de editores y sistemas operativos
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
