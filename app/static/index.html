@@ -87,6 +87,25 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
         }
 
+        .grupo-derecha {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .contenedor-imagen {
+            display: inline-flex;
+            align-items: center;
+            height: 3.4em;
+        }
+
+        .contenedor-imagen img {
+            height: 100%;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        }
+
         .contenedor {
             max-width: 1200px;
             margin: 22px auto;
@@ -578,8 +597,11 @@
             <div class="titulo-app">Kallpa Allpa Cochabamba</div>
             <p class="subtitulo-app">Planificación agrícola y recomendación de cultivos para tu terreno</p>
         </div>
-        <div>
+        <div class="grupo-derecha">
             <span class="etiqueta-valle">Valles de Cochabamba</span>
+            <div class="contenedor-imagen">
+                <img src="/static/img/escudo.png" alt="Escudo de Cochabamba">
+            </div>
         </div>
     </div>
 </header>
@@ -802,7 +824,7 @@
         },
         "Haba de Valle": {
             quechua: "Hawas",
-            imagen: "/static/img/haba.jpg",
+            imagen: "/static/img/haba1.jpg",
             consejo_es: "Excelente cultivo de rotación. Fija nitrógeno, nutre la tierra y soporta bajas temperaturas.",
             consejo_qu: "Allpatapas kallpachan, chiri killakunapipis sumaqta puqun.",
             piso_alt: "Óptimo: 2.500 a 3.400 msnm",
@@ -811,7 +833,7 @@
         },
         "Alfalfa": {
             quechua: "Alpalpa (Uywa qhura)",
-            imagen: "/static/img/alfalfa.jpg",
+            imagen: "/static/img/alfalfa1.jpg",
             consejo_es: "Principal forraje de corte en La Maica para ganado lechero. Cortes continuos cada 35-45 días.",
             consejo_qu: "Wakahinataq uywakunapaq forraje, sapa 35-45 punchay k'utuna.",
             piso_alt: "Óptimo: 2.200 a 2.800 msnm",
@@ -856,7 +878,7 @@
         },
         "Avena Forrajera": {
             quechua: "Awinaka (Uywa mikhuna)",
-            imagen: "/static/img/avena.jpg",
+            imagen: "/static/img/avena1.jpg",
             consejo_es: "Alta rusticidad frente a heladas y vientos fríos. Ideal para laderas y alturas del Tunari.",
             consejo_qu: "Chiri qasapi mana wanunchu, orqokunapipis sumaq forraje lloqsin.",
             piso_alt: "Óptimo: 2.600 a 3.800 msnm (Resistente al frío)",
@@ -865,7 +887,7 @@
         },
         "Arveja": {
             quechua: "Alwirha",
-            imagen: "/static/img/arveja.jpg",
+            imagen: "/static/img/arveja1.jpg",
             consejo_es: "Leguminosa de ciclo rápido. Buena adaptación a laderas templadas y rotación invernal.",
             consejo_qu: "Pisi pachallapi puqun, allpatapis samachin allinta.",
             piso_alt: "Óptimo: 2.400 a 3.200 msnm",
